@@ -1,12 +1,10 @@
-#include <iostream>
-#include <iomanip>
-#include <cstdlib>
-#include <ctime>
-#include <string>
-
+#include <bits/stdc++.h>
 using namespace std;
-
 int board[4][4];
+
+void delay(int ms) {
+    this_thread::sleep_for(chrono::milliseconds(ms));
+}
 
 void rotateBoard() {
     int n = 4;
@@ -121,28 +119,20 @@ void play2048() {
     string input;
     while (true) {
         printBoard();
-        
-        // If the input stream breaks, safely exit
-        if (!(cin >> input)) {
-            break;
-        }
-        
-        // Clear anything extra they typed on the same line
+        cin >> input;
         cin.clear();
-        cin.ignore(10000, '\n');
-
+        cin.ignore(1000,'\n');//clear buffer
         // Check 1: Did they type more than one character? (e.g. "wasd")
         if (input.length() > 1) {
             continue; // Skip the turn and ask again
         }
-
         char op = tolower(input[0]);
-
         // Check 2: Is it an invalid key? (e.g. 'x')
         if (op != 'w' && op != 'a' && op != 's' && op != 'd' && op != 'q') {
+            cout << "\nWrong Input! You can only type (W/A/S/D) Move, (Q) Quit";
+            delay(500);
             continue; // Skip the turn and ask again
         }
-
         if (op == 'q') {
             break; // Quit the game and return to the main menu cleanly
         }
