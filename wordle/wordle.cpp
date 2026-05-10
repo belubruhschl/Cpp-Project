@@ -1,3 +1,4 @@
+#if FALSE
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -121,3 +122,4 @@ void wordle(){
         chance--;
     }
 }
+#endif

@@ -4,6 +4,21 @@
 
 using namespace std;
 
+//The Windows kernal is too old to handle these lmao
+#ifdef _WIN32
+#include <windows.h>
+void init_terminal() {
+    SetConsoleOutputCP(65001);
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD dwMode = 0;
+    if (GetConsoleMode(hOut, &dwMode)) {
+        SetConsoleMode(hOut, dwMode | 0x0004);
+    }
+}
+#else
+void init_terminal() {}
+#endif
+
 void clearScreen() {
     cout << "\033[2J\033[1;1H"; //The ascii code to clear screen
 }
@@ -57,6 +72,7 @@ public:
 };
 
 int main() {
+    init_terminal();
     MainMenu menu;
 
     menu.addOption("1", "Play 2048 (Terminal Edition)", []() {
