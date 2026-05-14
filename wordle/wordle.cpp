@@ -16,19 +16,39 @@ void loadData(){
         answers.push_back(temp);
     }
     file2.close();
-    cout<<validGuesses[0]<<answers[0];/*debug*/
+    sort(validGuesses.begin(), validGuesses.end());
 }
 
-string hints(){
-    return "Good Luck";
+string selectLanguage(){
+    while(true){
+        string s;
+        cout<<"Please select a language, English(e) or Chinesec(c)";
+        cin>>s;
+        if(s=="e" || s=="c"){
+            return s;
+        }
+    }
+}
+
+int hints(string ans,int hint){
+    if(hint<=3){
+        hint++;
+        string s;
+        cout<<"Do you need a hint?(y/n)";
+        cin>>s;
+        if(s=="y"){
+            cout<<"The answer contains letter "<<ans[hint]<<"."<<endl;
+        }
+    }
+    return hint;
 }
 
 string getRandomWord() {
     if (answers.empty()) return "";
 
     // 1. 建立隨機數產生器 (使用 random_device 當種子)
-    static random_device rd; 
-    static mt19937 gen(rd()); 
+    static random_device rd;
+    static mt19937 gen(rd());
 
     // 2. 定義範圍：從 0 到 vector 的最後一個索引
     uniform_int_distribution<> dis(0, answers.size() - 1);
@@ -38,8 +58,8 @@ string getRandomWord() {
     return answers[randomIndex];
 }
 
-void intro(char s){
-    if(s=='e'){
+void intro(string s){
+    if(s=="e"){
         cout << R"(
           =============================================
                      WELCOME TO WORDLE C++
@@ -62,62 +82,90 @@ void intro(char s){
     }
 }
 
-void wordle(){
-    loadData();
-    char s;
-    cout<<"================================";
-    cout<<"select a language: English(e) or Chinese(c)";
-    cin>>s;
-    intro(s);
-    int chance=6;
-    string answer=getRandomWord();
-    vector<char> result;
-    vector<vector<char>> output(6,vector<int>(5,'_'));
-    // 定義字體顏色常數
-    const string RESET  = "\033[0m";
-    const string GREEN  = "\033[32m";  // 綠色字體
-    const string YELLOW = "\033[33m";  // 黃色字體
-    const string GRAY   = "\033[90m";  // 灰色字體
-    while(chance>0){
-        cout<<chance<<" attemps left, please enter a five letter word for your "<<7-chance<<"guess"<<endl;
-        cout<<"If you need a hint, enter h";
-        string guess;
-        cin>>guess;
-        if(guess=='h'){
-            cout<<hints()<<"might be a good choice"<<endl;
-            cout<<chance<<" attemps left, please enter a five letter word for your "<<7-chance<<"guess"<<endl;
-            cin>>guess;
+string input(int attempt){
+    while(true){
+        string s;
+        cout<<"Please answer your guess, you have "<<attempt<<" attempts left."<<endl;
+        cin>>s;
+        if(s.length()==5 && binary_search(validGuesses.begin(), validGuesses.end(), s)){
+            for (int i=0;i<s.length();i++) {
+                s[i]=toupper(s[i]);
+            }
+            return s;
         }
+        else{
+            cout<<"Your guess must be a 5-letter English word";
+        }
+    }
+}
+
+bool wordle(){
+    string language=selectLanguage();
+    loadData();
+    intro(language);
+    string answer=getRandomWord();
+    vector<vector<string>> output(6,vector<string>(5,"_"));
+    const string RESET  = "\x1b[0m";
+    const string GREEN  = "\x1b[32m";
+    const string YELLOW = "\x1b[33m";
+    const string GRAY   = "\x1b[90m";
+    int chance=6,hint=0;
+    while(chance>0){
+        hint=hints(answer,hint);
+        string guess=input(chance);
         for (int i=0;i<5;i++){
             if(guess[i]==answer[i]){
-                result.push_back(GREEN+guess[i]+RESET);
+                output[6-chance][i]=GREEN+guess[i]+RESET;
                 continue;
             }
+            bool in=false;
             for (int j=0;j<5;j++){
                 if(answer[j]==guess[i]){
-                    result.push_back(YELLOW+guess[i]+RESET);
+                    output[6-chance][i]=YELLOW+guess[i]+RESET;
+                    in=true;
                     break;
                 }
-                if(j==4){
-                    result.push_back(GRAY+guess[i]+RESET);
-                }
             }
-        }/*result*/
-        for(int i=0;i<5;i++){
-            output[6-chance][i]=result[i];
+            if (!in) {
+                output[6-chance][i]=GRAY+guess[i]+RESET;
+            }
         }
-        cout<<"\033[2J\033[1;1H";
-        intro(s);
+        cout << "\033[2J\033[1;1H";
+        intro(language);
         cout<<"============="<<endl;
         for(int i=0;i<6;i++){
-            cout<<"= "
+            cout<<"|";
             for(int j=0;j<5;j++){
-                cout<<output[i][j]<<" ";
+                cout<<" "<<output[i][j];
             }
-            cout<<"="<<endl;
+            cout<<" |"<<endl;
         }
         cout<<"============="<<endl;
-        cout<<"Nice Try!";
+        cout<<"Nice Try!"<<endl;
         chance--;
+        if(guess==answer){
+            cout<<"Congrats! You guessed the correct word!"<<endl;
+            cout<<"Play Again?(y/n)";
+            string s;
+            cin>>s;
+            if (s=="y") {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        else if(chance==0){
+            cout<<"Better luck next time."<<endl;
+            cout<<"Play Again?(y/n)";
+            string s;
+            cin>>s;
+            if (s=="y") {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
     }
 }
