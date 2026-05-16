@@ -42,9 +42,9 @@ void printBoard() {
         cout << "|";
         for (int j = 0; j<4;j++) {
             int tileNum = board[i][j];
-            int width = (int)log10(maxTile)+1;
+            int width = (int)log10(maxTile)+2;
             int tile = tileNum ? (int)log2(tileNum) : 0; //CPU heavy isn't it?
-            cout << COLORS[(tile>12 ? 12 : tile)] << (tileNum < 8 ? DARK_TXT : WHT_TXT) << setw(width) << (tileNum ? to_string(tileNum) : " " ) << RESET << "|";
+            cout << COLORS[(tile > 12 ? 12 : tile)] << (tileNum < 8 ? DARK_TXT : WHT_TXT) << string(((to_string(maxTile).length() + 2) - (tileNum ? to_string(tileNum) : " ").length()) / 2, ' ') << (tileNum ? to_string(tileNum) : " ") << string((to_string(maxTile).length() + 2) - (tileNum ? to_string(tileNum) : " ").length() - (((to_string(maxTile).length() + 2) - (tileNum ? to_string(tileNum) : " ").length()) / 2), ' ') << RESET << "|";    
         }
         cout << endl;
     }
@@ -205,10 +205,11 @@ void init() {
 
 void play2048() {
     init();
+    spawn();
     while (true) {
         CLEAR_SCREEN
         if (isDead()) { //aka if it is 0 it will return true
-            cout << "You Lost!";
+            cout << "You Lost!" << "\n";
             delay(1000);
             break;
         }
@@ -216,12 +217,14 @@ void play2048() {
         cout << endl << "Enter your choice (WASD or Q to quit): ";
         char input;
         cin >> input;
+        int before[4][4];
+        copy(&board[0][0], &board[0][0] + 16, &before[0][0]);
         if (input == 'q') break;
         if (input != 'w' && input != 'a'  && input != 's'  && input != 'd') continue;
         if (input == 'w') up();
         if (input == 's') down();
         if (input == 'a') left();
         if (input == 'd') right();
-        spawn();
+        if (!equal(&board[0][0], &board[0][0] + 16, &before[0][0])) spawn();
     }
 }
