@@ -209,12 +209,12 @@ void play2048() {
     while (true) {
         CLEAR_SCREEN
         if (isDead()) { //aka if it is 0 it will return true
-            cout << "You Lost!" << "\n";
+            cout << "輸了！" << "\n";
             delay(1000);
             break;
         }
         printBoard();
-        cout << endl << "Enter your choice (WASD or Q to quit): ";
+        cout << endl << "請選擇 (WASD 或 Q 離開)： ";
         char input;
         cin >> input;
         int before[4][4];
