@@ -7,6 +7,7 @@
 using namespace std;
 
 random_device rd; mt19937 gen(rd());
+int maxTile = 2;
 int board[4][4];
 int current_free = 16; //Sorry for snake case. This is a bit too long for camel so I think snake would be better.
 int canSpawn[16];
@@ -36,17 +37,18 @@ void delay(int ms) {
 }
 
 void printBoard() {
+    cout << "\n";
     for (int i = 0; i<4; i++) {
         cout << "|";
         for (int j = 0; j<4;j++) {
             int tileNum = board[i][j];
+            int width = (int)log10(maxTile)+1;
             int tile = tileNum ? (int)log2(tileNum) : 0; //CPU heavy isn't it?
-            cout << COLORS[(tile>12 ? 12 : tile)] << (tileNum < 8 ? DARK_TXT : WHT_TXT) << tileNum << RESET << "|";
+            cout << COLORS[(tile>12 ? 12 : tile)] << (tileNum < 8 ? DARK_TXT : WHT_TXT) << setw(width) << (tileNum ? to_string(tileNum) : " " ) << RESET << "|";
         }
         cout << endl;
     }
 }
-
 void left() {
     for (int i = 0; i < 4; i++) {
         int target = 0;
@@ -58,7 +60,8 @@ void left() {
         }
         for (int j = 0; j < 3; j++) {
             if (board[i][j] != 0 && board[i][j] == board[i][j + 1]) {
-                board[i][j] *= 2;
+                int merged = board[i][j]*=2;
+                if (merged > maxTile) maxTile = merged;
                 board[i][j + 1] = 0;
                 current_free++;
             }
@@ -84,7 +87,8 @@ void right() {
         }
         for (int j = 3; j > 0; j--) {
             if (board[i][j] != 0 && board[i][j] == board[i][j - 1]) {
-                board[i][j] *= 2;
+                int merged = board[i][j]*=2;
+                if (merged > maxTile) maxTile = merged;
                 board[i][j - 1] = 0;
                 current_free++;
             }
@@ -110,7 +114,8 @@ void up() {
         }
         for (int i = 0; i < 3; i++) {
             if (board[i][j] != 0 && board[i][j] == board[i + 1][j]) {
-                board[i][j] *= 2;
+                int merged = board[i][j]*=2;
+                if (merged > maxTile) maxTile = merged;
                 board[i + 1][j] = 0;
                 current_free++;
             }
@@ -136,7 +141,8 @@ void down() {
         }
         for (int i = 3; i > 0; i--) {
             if (board[i][j] != 0 && board[i][j] == board[i - 1][j]) {
-                board[i][j] *= 2;
+                int merged = board[i][j]*=2;
+                if (merged > maxTile) maxTile = merged;
                 board[i - 1][j] = 0;
                 current_free++;
             }
@@ -206,7 +212,6 @@ void play2048() {
             delay(1000);
             break;
         }
-        spawn();
         printBoard();
         cout << endl << "Enter your choice (WASD or Q to quit): ";
         char input;
@@ -217,5 +222,6 @@ void play2048() {
         if (input == 's') down();
         if (input == 'a') left();
         if (input == 'd') right();
+        spawn();
     }
 }
