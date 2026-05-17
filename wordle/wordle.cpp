@@ -1,4 +1,3 @@
-#if FALSE
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -170,4 +169,3 @@ bool wordle(){
         }
     }
 }
-#endif
