@@ -39,8 +39,8 @@ def generate_headers(cpp_files):
 
 def compile_project(cpp_files):
     is_windows = platform.system() == "Windows"
-    output_win = "UltimateProject.exe"
-    output_linux = "UltimateProject.out"
+    output_win = "app.exe"
+    output_linux = "app.out"
     
     cmd_win = ["g++"] + cpp_files + ["-o", output_win]
     cmd_linux = ["g++"] + cpp_files + ["-o", output_linux]

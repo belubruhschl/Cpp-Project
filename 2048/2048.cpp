@@ -1,162 +1,230 @@
+#pragma once
 #include <bits/stdc++.h>
 using namespace std;
+#define CLEAR_SCREEN cout << "\033[2J\033[1;1H"; 
+#define DARK_TXT "\033[38;2;119;110;101m" //Only 2 and 4
+#define WHT_TXT  "\033[38;2;249;246;242m" 
+#define RESET    "\033[0m"
+
+extern int getch(); //Too lazy to make a header for main.cpp
+random_device rd; mt19937 gen(rd());
+int maxTile = 2;
 int board[4][4];
+int current_free = 16; //Sorry for snake case. This is a bit too long for camel so I think snake would be better.
+int canSpawn[16];
+string COLORS[] = {
+    "\033[38;2;249;246;242m", //Ok I know you can use WHT_TXT but this is more neat
+    "\033[48;2;238;228;218m",
+    "\033[48;2;237;224;200m",
+    "\033[48;2;242;177;121m",
+    "\033[48;2;245;149;99m",
+    "\033[48;2;246;124;95m",
+    "\033[48;2;246;94;59m",
+    "\033[48;2;237;207;114m",
+    "\033[48;2;237;204;97m",
+    "\033[48;2;237;200;80m",
+    "\033[48;2;237;197;63m",
+    "\033[48;2;237;194;46m",
+    "\033[48;2;60;58;50m"
+};
+
+int randint(int min, int max) { 
+    uniform_int_distribution<> distr(min, max);
+    return distr(gen);
+}
 
 void delay(int ms) {
     this_thread::sleep_for(chrono::milliseconds(ms));
 }
 
-void rotateBoard() {
-    int n = 4;
-    for (int i = 0; i < n / 2; i++) {
-        for (int j = i; j < n - i - 1; j++) {
-            int temp = board[i][j];
-            board[i][j] = board[n - 1 - j][i];
-            board[n - 1 - j][i] = board[n - 1 - i][n - 1 - j];
-            board[n - 1 - i][n - 1 - j] = board[j][n - 1 - i];
-            board[j][n - 1 - i] = temp;
-        }
-    }
-}
-
-bool slideLeft() {
-    bool changed = false;
-    for (int r = 0; r < 4; r++) {
-        int tempRow[4] = {0};
-        int pos = 0;
-        
-        for (int c = 0; c < 4; c++) {
-            if (board[r][c] != 0) {
-                tempRow[pos] = board[r][c];
-                pos++;
-            }
-        }
-        
-        for (int i = 0; i < 3; i++) {
-            if (tempRow[i] != 0 && tempRow[i] == tempRow[i + 1]) {
-                tempRow[i] = tempRow[i] * 2;
-                tempRow[i + 1] = 0;
-                changed = true;
-            }
-        }
-
-        int finalRow[4] = {0};
-        pos = 0;
-        
-        for (int i = 0; i < 4; i++) {
-            if (tempRow[i] != 0) {
-                finalRow[pos] = tempRow[i];
-                pos++;
-            }
-        }
-
-        for (int c = 0; c < 4; c++) {
-            if (board[r][c] != finalRow[c]) {
-                changed = true;
-            }
-            board[r][c] = finalRow[c];
-        }
-    }
-    return changed;
-}
-
-void addTile() {
-    int empty[16][2];
-    int count = 0;
-    
-    for (int r = 0; r < 4; r++) {
-        for (int c = 0; c < 4; c++) {
-            if (board[r][c] == 0) {
-                empty[count][0] = r;
-                empty[count][1] = c;
-                count++;
-            }
-        }
-    }
-    
-    if (count > 0) {
-        int i = rand() % count;
-        if (rand() % 10 < 9) {
-            board[empty[i][0]][empty[i][1]] = 2;
-        } else {
-            board[empty[i][0]][empty[i][1]] = 4;
-        }
-    }
-}
-
 void printBoard() {
-    cout << "\033[2J\033[1;1H"; 
-    cout << "=========================" << endl;
-    cout << "       2048 ASCII        " << endl;
-    cout << "=========================" << endl;
-    for (int r = 0; r < 4; r++) {
-        cout << "+----+----+----+----+" << endl;
-        for (int c = 0; c < 4; c++) {
-            if (board[r][c] == 0) {
-                cout << "|    ";
-            } else {
-                cout << "| " << setw(2) << board[r][c] << " ";
+    cout << "\n";
+    for (int i = 0; i<4; i++) {
+        cout << "|";
+        for (int j = 0; j<4;j++) {
+            int tileNum = board[i][j];
+            int tile = tileNum ? (int)log2(tileNum) : 0; //CPU heavy isn't it?
+            cout << COLORS[(tile > 12 ? 12 : tile)] << (tileNum < 8 ? DARK_TXT : WHT_TXT) << string(((to_string(maxTile).length() + 2) - (tileNum ? to_string(tileNum) : " ").length()) / 2, ' ') << (tileNum ? to_string(tileNum) : " ") << string((to_string(maxTile).length() + 2) - (tileNum ? to_string(tileNum) : " ").length() - (((to_string(maxTile).length() + 2) - (tileNum ? to_string(tileNum) : " ").length()) / 2), ' ') << RESET << "|";    
+        }
+        cout << endl;
+    }
+}
+void left() {
+    for (int i = 0; i < 4; i++) {
+        int target = 0;
+        for (int j = 0; j < 4; j++) {
+            if (board[i][j] != 0) {
+                swap(board[i][target], board[i][j]);
+                target++;
             }
         }
-        cout << "|" << endl;
+        for (int j = 0; j < 3; j++) {
+            if (board[i][j] != 0 && board[i][j] == board[i][j + 1]) {
+                int merged = board[i][j]*=2;
+                if (merged > maxTile) maxTile = merged;
+                board[i][j + 1] = 0;
+                current_free++;
+            }
+        }
+        target = 0;
+        for (int j = 0; j < 4; j++) {
+            if (board[i][j] != 0) {
+                swap(board[i][target], board[i][j]);
+                target++;
+            }
+        }
     }
-    cout << "+----+----+----+----+" << endl;
-    cout << "(W/A/S/D) Move, (Q) Quit" << endl;
-    cout << "Enter your move: ";
+}
+
+void right() {
+    for (int i = 0; i < 4; i++) {
+        int target = 3;
+        for (int j = 3; j >= 0; j--) {
+            if (board[i][j] != 0) {
+                swap(board[i][target], board[i][j]);
+                target--;
+            }
+        }
+        for (int j = 3; j > 0; j--) {
+            if (board[i][j] != 0 && board[i][j] == board[i][j - 1]) {
+                int merged = board[i][j]*=2;
+                if (merged > maxTile) maxTile = merged;
+                board[i][j - 1] = 0;
+                current_free++;
+            }
+        }
+        target = 3;
+        for (int j = 3; j >= 0; j--) {
+            if (board[i][j] != 0) {
+                swap(board[i][target], board[i][j]);
+                target--;
+            }
+        }
+    }
+}
+
+void up() {
+    for (int j = 0; j < 4; j++) {
+        int target = 0;
+        for (int i = 0; i < 4; i++) {
+            if (board[i][j] != 0) {
+                swap(board[target][j], board[i][j]);
+                target++;
+            }
+        }
+        for (int i = 0; i < 3; i++) {
+            if (board[i][j] != 0 && board[i][j] == board[i + 1][j]) {
+                int merged = board[i][j]*=2;
+                if (merged > maxTile) maxTile = merged;
+                board[i + 1][j] = 0;
+                current_free++;
+            }
+        }
+        target = 0;
+        for (int i = 0; i < 4; i++) {
+            if (board[i][j] != 0) {
+                swap(board[target][j], board[i][j]);
+                target++;
+            }
+        }
+    }
+}
+
+void down() {
+    for (int j = 0; j < 4; j++) {
+        int target = 3;
+        for (int i = 3; i >= 0; i--) {
+            if (board[i][j] != 0) {
+                swap(board[target][j], board[i][j]);
+                target--;
+            }
+        }
+        for (int i = 3; i > 0; i--) {
+            if (board[i][j] != 0 && board[i][j] == board[i - 1][j]) {
+                int merged = board[i][j]*=2;
+                if (merged > maxTile) maxTile = merged;
+                board[i - 1][j] = 0;
+                current_free++;
+            }
+        }
+        target = 3;
+        for (int i = 3; i >= 0; i--) {
+            if (board[i][j] != 0) {
+                swap(board[target][j], board[i][j]);
+                target--;
+            }
+        }
+    }
+}
+
+bool isDead() {
+    //Basically trying out all neighbors :P
+    if (current_free) return false; //Cause you need it to be 0 which is false so it actually check the thing at down
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (board[i][j] == board[i][j+1]) return false;
+        }
+    }
+    for (int j = 0; j < 4; j++) {
+        for (int i = 0; i < 3; i++) {
+            if (board[i][j] == board[i+1][j]) return false;
+        }
+    }
+    return true; 
+}
+
+void spawn() {
+    int count = 0;
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            if (board[i][j] == 0) {
+                canSpawn[count++] = i * 4 + j;
+            }
+        }
+    }
+    
+     
+    current_free = count;
+
+    if (count > 0) {
+        int choice = canSpawn[randint(0, count - 1)];
+        board[choice / 4][choice % 4] = (randint(0, 9) == 0 ? 4 : 2);
+        current_free--; 
+    }
+}
+
+//Trying to keep things modulize here :) which I dont really do
+void init() {
+    for (int i = 0;i<16;i++) {canSpawn[i]=0;}
+    for (int i = 0; i<4; i++) {
+        for (int j = 0; j<4; j++) {
+            board[i][j] = {0};
+        }
+    }
 }
 
 void play2048() {
-    for(int r = 0; r < 4; r++) {
-        for(int c = 0; c < 4; c++) {
-            board[r][c] = 0;
-        }
-    }
-
-    srand(time(0));
-    addTile();
-    addTile();
-
-    string input;
+    init();
+    spawn();
     while (true) {
+        CLEAR_SCREEN
+        if (isDead()) { //aka if it is 0 it will return true
+            cout << "輸了！" << "\n";
+            delay(1000);
+            break;
+        }
         printBoard();
-        cin >> input;
-        cin.clear();
-        cin.ignore(1000,'\n');//clear buffer
-        // Check 1: Did they type more than one character? (e.g. "wasd")
-        if (input.length() > 1) {
-            continue; // Skip the turn and ask again
-        }
-        char op = tolower(input[0]);
-        // Check 2: Is it an invalid key? (e.g. 'x')
-        if (op != 'w' && op != 'a' && op != 's' && op != 'd' && op != 'q') {
-            cout << "\nWrong Input! You can only type (W/A/S/D) Move, (Q) Quit";
-            delay(500);
-            continue; // Skip the turn and ask again
-        }
-        if (op == 'q') {
-            break; // Quit the game and return to the main menu cleanly
-        }
-
-        bool moved = false;
-        
-        if (op == 'a') {
-            moved = slideLeft();
-        } else if (op == 'w') {
-            rotateBoard(); rotateBoard(); rotateBoard();
-            moved = slideLeft();
-            rotateBoard();
-        } else if (op == 'd') {
-            rotateBoard(); rotateBoard();
-            moved = slideLeft();
-            rotateBoard(); rotateBoard();
-        } else if (op == 's') {
-            rotateBoard();
-            moved = slideLeft();
-            rotateBoard(); rotateBoard(); rotateBoard();
-        }
-
-        if (moved) {
-            addTile();
-        }
+        cout << endl << "請選擇 (WASD 或 Q 離開)： ";
+        char input = tolower(getch());
+        //cin >> input;
+        int before[4][4];
+        copy(&board[0][0], &board[0][0] + 16, &before[0][0]);
+        if (input == 'q') break;
+        if (input != 'w' && input != 'a'  && input != 's'  && input != 'd') continue;
+        if (input == 'w') up();
+        if (input == 's') down();
+        if (input == 'a') left();
+        if (input == 'd') right();
+        if (!equal(&board[0][0], &board[0][0] + 16, &before[0][0])) spawn();
     }
 }
