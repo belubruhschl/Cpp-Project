@@ -1,11 +1,12 @@
+#pragma once
 #include <bits/stdc++.h>
+using namespace std;
 #define CLEAR_SCREEN cout << "\033[2J\033[1;1H"; 
 #define DARK_TXT "\033[38;2;119;110;101m" //Only 2 and 4
 #define WHT_TXT  "\033[38;2;249;246;242m" 
 #define RESET    "\033[0m"
 
-using namespace std;
-
+extern int getch(); //Too lazy to make a header for main.cpp
 random_device rd; mt19937 gen(rd());
 int maxTile = 2;
 int board[4][4];
@@ -42,7 +43,6 @@ void printBoard() {
         cout << "|";
         for (int j = 0; j<4;j++) {
             int tileNum = board[i][j];
-            int width = (int)log10(maxTile)+2;
             int tile = tileNum ? (int)log2(tileNum) : 0; //CPU heavy isn't it?
             cout << COLORS[(tile > 12 ? 12 : tile)] << (tileNum < 8 ? DARK_TXT : WHT_TXT) << string(((to_string(maxTile).length() + 2) - (tileNum ? to_string(tileNum) : " ").length()) / 2, ' ') << (tileNum ? to_string(tileNum) : " ") << string((to_string(maxTile).length() + 2) - (tileNum ? to_string(tileNum) : " ").length() - (((to_string(maxTile).length() + 2) - (tileNum ? to_string(tileNum) : " ").length()) / 2), ' ') << RESET << "|";    
         }
@@ -215,8 +215,8 @@ void play2048() {
         }
         printBoard();
         cout << endl << "請選擇 (WASD 或 Q 離開)： ";
-        char input;
-        cin >> input;
+        char input = tolower(getch());
+        //cin >> input;
         int before[4][4];
         copy(&board[0][0], &board[0][0] + 16, &before[0][0]);
         if (input == 'q') break;

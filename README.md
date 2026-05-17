@@ -4,6 +4,8 @@
 
 **
 
+##BIG NOTICE! THE MAIN MENU IS SPECIALLY DESIGNED BY AI! I do code the class and thing but the design and the cursor handling is provided by AI (Gemini).
+
 ## *Games Showcase:*
 
  - 2048

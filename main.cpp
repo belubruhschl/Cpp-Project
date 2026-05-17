@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 #include <functional>
-#include "2048/2048.h"
+#include "2048/2048.cpp"
+#include "wordle/wordle.cpp"
+#include "NN/ai_tools.cpp"
 
 #ifdef _WIN32
     #include <windows.h>
@@ -9,6 +11,7 @@
     #include <termios.h>
     #include <unistd.h>
     int getch() {
+        //Can understand? Same to me (only know a bit but yeah thanks for our dear AI guy to modify the Linux input to not wait for enter)
         struct termios oldt, newt;
         int ch;
         tcgetattr(STDIN_FILENO, &oldt);
@@ -137,8 +140,9 @@ int main() {
         cout << BOLD_WHITE << "[提示] Wordle 尚未完成。" << RESET << endl;
     });
 
-    menu.addOption("神經網路模型訓練 [開發中]", []() {
-        cout << BOLD_WHITE << "[提示] 未完成" << RESET << endl;
+    menu.addOption("神經網路模型訓練 ", []() {
+        clearScreen();
+        start_nn_demo();
     });
 
     menu.addOption("關閉系統並退出", []() {
