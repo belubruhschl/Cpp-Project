@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
-#pragma once
 using namespace std;
+#pragma once
 extern int randint(int min, int max);
 extern void delay(int ms);
 
